@@ -15,7 +15,7 @@ static const char map[] = "0000222222220000"\
                           "5   4   1  00000"\
                           "0       1      0"\
                           "2       1      0"\
-                          "0       0      0"\
+                          "0       0   3  0"\
                           "0  000000      0"\
                           "0              0"\
                           "0002222222200000";
@@ -26,7 +26,7 @@ Map::Map() : w(16), h(16) {
 
 int Map::get(const size_t i, const size_t j) {
     assert(i<w && j<h && sizeof(map) == w*h+1);
-    return map[i+jk*w] - '0';
+    return map[i+j*w] - '0';
 }
 
 bool Map::is_empty(const size_t i, const size_t j) {
