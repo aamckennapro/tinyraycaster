@@ -29,6 +29,10 @@ void render(FrameBuffer &fb, Map &map, Player &player, Texture &tex_walls) {
   fb.clear(pack_color(255, 255, 255));
   const size_t rect_w = fb.w/(map.w*2);
   const size_t rect_h = fb.h/map.h;
+  fb.set_pixel(rect_w, rect_h, pack_color(50,50,50));
+  fb.set_pixel(2*rect_w, rect_h, pack_color(50,50,50));
+  fb.set_pixel(rect_w, 2*rect_h, pack_color(50,50,50));
+
   for (size_t j=0; j<map.h; j++) {
     for (size_t i=0; i<map.w; i++) {
       if (map.is_empty(i, j)) continue;
@@ -42,7 +46,7 @@ void render(FrameBuffer &fb, Map &map, Player &player, Texture &tex_walls) {
 
   for (size_t i=0; i<fb.w/2; i++) {
     float angle = player.a-player.fov/2 + player.fov*i/float(fb.w/2);
-    for (float t=0; t<20; t+=.01) {
+    for (float t=0; t<20; t+=0.01) { // normally t<20
       float x = player.x + t*cos(angle);
       float y = player.y + t*sin(angle);
       fb.set_pixel(x*rect_w, y*rect_h, pack_color(160, 160, 160));
@@ -57,7 +61,6 @@ void render(FrameBuffer &fb, Map &map, Player &player, Texture &tex_walls) {
       int pix_x = i + fb.w/2;
       for (size_t j=0; j<column_height; j++) {
         int pix_y = j + fb.h/2 - column_height/2; 
-        //std::cout << "pix_x: " << pix_x << ", pix_y: " << pix_y << std::endl;
         if (pix_y>=0 && pix_y<(int)fb.h) {
           fb.set_pixel(pix_x, pix_y, column[j]); // This handles drawing in
                                                  // 3D. 
@@ -71,7 +74,7 @@ void render(FrameBuffer &fb, Map &map, Player &player, Texture &tex_walls) {
 int main() {
   FrameBuffer fb{1024, 512, std::vector<uint32_t>(1024*512, pack_color(255, 255, 255))};
   //Player player{3.456, 2.345, 1.523, M_PI/3};
-  Player player{4.456, 12.345, 1.523, M_PI/3};
+  Player player{3, 3, 1.523, M_PI/3};
   Map map;
   Texture tex_walls("./walltext.png");
   if (!tex_walls.count) {
