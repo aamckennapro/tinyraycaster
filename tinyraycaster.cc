@@ -36,7 +36,7 @@ void render(FrameBuffer &fb, Map &map, Player &player, Texture &tex_walls) {
       // that changes is the x
       if (map.is_empty(i, j)) {
         fb.draw_rectangle(i*rect_w, j*rect_h, 1, fb.h, pack_color(255, 0, 255));
-        fb.draw_rectangle(i*rect_w, j*rect_h, fb.w, 1, pack_color(255, 0, 255));
+        fb.draw_rectangle(i*rect_w, j*rect_h, rect_w, 1, pack_color(255, 0, 255));
         continue;
       }
       size_t rect_x = i*rect_w;
@@ -66,7 +66,8 @@ void render(FrameBuffer &fb, Map &map, Player &player, Texture &tex_walls) {
         int pix_y = j + fb.h/2 - column_height/2; 
         if (pix_y>=0 && pix_y<(int)fb.h) {
           fb.set_pixel(pix_x, pix_y, column[j]); // This handles drawing in
-                                                 // 3D. 
+                                                 // 3D.
+          fb.set_pixel(96 + fb.w/2, 130 + fb.h/2 - column_height/2, pack_color(0, 0, 0));
         }
       }
       break;
@@ -77,7 +78,7 @@ void render(FrameBuffer &fb, Map &map, Player &player, Texture &tex_walls) {
 int main() {
   FrameBuffer fb{1024, 512, std::vector<uint32_t>(1024*512, pack_color(255, 255, 255))};
   //Player player{3.456, 2.345, 1.523, M_PI/3};
-  Player player{3, 3, 1.523, M_PI/3};
+  Player player{3., 3, 1.523, M_PI/3};
   Map map;
   Texture tex_walls("./walltext.png");
   if (!tex_walls.count) {
