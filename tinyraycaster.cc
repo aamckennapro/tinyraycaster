@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
-#include<vector>
+#include <vector>
 #include <cstdint>
 #include <cassert>
 #include <sstream>
@@ -29,13 +29,16 @@ void render(FrameBuffer &fb, Map &map, Player &player, Texture &tex_walls) {
   fb.clear(pack_color(255, 255, 255));
   const size_t rect_w = fb.w/(map.w*2);
   const size_t rect_h = fb.h/map.h;
-  fb.set_pixel(rect_w, rect_h, pack_color(50,50,50));
-  fb.set_pixel(2*rect_w, rect_h, pack_color(50,50,50));
-  fb.set_pixel(rect_w, 2*rect_h, pack_color(50,50,50));
 
   for (size_t j=0; j<map.h; j++) {
     for (size_t i=0; i<map.w; i++) {
-      if (map.is_empty(i, j)) continue;
+      // draw the grid, rectangle size is always the same, that only thing
+      // that changes is the x
+      if (map.is_empty(i, j)) {
+        fb.draw_rectangle(i*rect_w, j*rect_h, 1, fb.h, pack_color(255, 0, 255));
+        fb.draw_rectangle(i*rect_w, j*rect_h, fb.w, 1, pack_color(255, 0, 255));
+        continue;
+      }
       size_t rect_x = i*rect_w;
       size_t rect_y = j*rect_h;
       size_t texid = map.get(i, j);
