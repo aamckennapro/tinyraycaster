@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <cstdint>
 #include <cassert>
@@ -32,24 +33,28 @@ void map_show_sprite(Sprite &sprite, FrameBuffer &fb, Map &map) {
   fb.draw_rectangle(sprite.x*rect_w-3, sprite.y*rect_h-3, 6, 6, pack_color(255,0,0));
 }
 
-void draw_sprite(Sprite &sprite, FrameBuffer &fb, Player &player, Texture &tex_sprites) {
+void draw_sprite(Sprite &sprite, std::vector<float> &depth_buffer, FrameBuffer &fb, Player &player, Texture &tex_sprites) {
   // absolute direction from player to sprite - radians
   float sprite_dir = atan2(sprite.y - player.y, sprite.x - player.x);
   while (sprite_dir - player.a > M_PI) sprite_dir -= 2*M_PI;
 
   while (sprite_dir - player.a < -M_PI) sprite_dir += 2*M_PI;
 
-  float sprite_dist = std::sqrt(pow(player.x - sprite.x, 2) + pow(player.y - sprite.y, 2));
-  size_t sprite_screen_size = std::min(1000, static_cast<int>(fb.h/sprite_dist));
+  size_t sprite_screen_size = std::min(1000, static_cast<int>(fb.h/sprite.player_dist));
+  
   int h_offset = (sprite_dir - player.a)/player.fov*(fb.w/2) + (fb.w/2)/2 - tex_sprites.size/2;
-
   int v_offset = fb.h/2 - sprite_screen_size/2;
 
   for (size_t i=0; i<sprite_screen_size; i++) {
-    if (h_offset+i<0 || h_offset+i>=fb.w/2) continue;
+    if (h_offset+int(i)<0 || h_offset+i>=fb.w/2) continue;
+    if (depth_buffer[h_offset+i]<sprite.player_dist) continue;
     for (size_t j=0; j<sprite_screen_size; j++) {
-      if (v_offset+j<0 || v_offset+j>=fb.h) continue;
-      fb.set_pixel(fb.w/2 + h_offset+i, v_offset+j, pack_color(0,0,0));
+      if (v_offset+int(j)<0 || v_offset+j>=fb.h) continue;
+      uint32_t color = tex_sprites.get(i*tex_sprites.size/sprite_screen_size, j*tex_sprites.size/sprite_screen_size, sprite.tex_id);
+      uint8_t r,g,b,a;
+      unpack_color(color, r, g, b, a);
+      if (a>128)
+        fb.set_pixel(fb.w/2 + h_offset+i, v_offset+j, color);
     }
   }
 }
@@ -75,7 +80,7 @@ void render(FrameBuffer &fb, Map &map, Player &player, std::vector<Sprite> &spri
       fb.draw_rectangle(rect_x, rect_y, rect_w, rect_h, tex_walls.get(0, 0, texid));
     }
   }
-
+  std::vector<float> depth_buffer(fb.w/2, 1e3);
   for (size_t i=0; i<fb.w/2; i++) {
     float angle = player.a-player.fov/2 + player.fov*i/float(fb.w/2);
     for (float t=0; t<20; t+=0.01) { // normally t<20
@@ -88,6 +93,7 @@ void render(FrameBuffer &fb, Map &map, Player &player, std::vector<Sprite> &spri
       size_t texid = map.get(x, y);
       assert(texid<tex_walls.count);
       float dist = t*cos(angle-player.a);
+      depth_buffer[i] = dist;
       size_t column_height = fb.h/dist;
       int x_texcoord = wall_x_texcoord(x, y, tex_walls);
       std::vector<uint32_t> column = tex_walls.get_scaled_column(texid, x_texcoord, column_height); // column textures
@@ -104,15 +110,20 @@ void render(FrameBuffer &fb, Map &map, Player &player, std::vector<Sprite> &spri
   }
 
   for (size_t i=0; i<sprites.size(); i++) {
+    sprites[i].player_dist = std::sqrt(pow(player.x - sprites[i].x, 2) + pow(player.y - sprites[i].y, 2));
+  }
+  std::sort(sprites.begin(), sprites.end());
+
+  for (size_t i=0; i<sprites.size(); i++) {
     map_show_sprite(sprites[i], fb, map);
-    draw_sprite(sprites[i], fb, player, tex_monst);
+    draw_sprite(sprites[i], depth_buffer, fb, player, tex_monst);
   }
 }
 
 int main() {
   FrameBuffer fb{1024, 512, std::vector<uint32_t>(1024*512, pack_color(255, 255, 255))};
   //Player player{3.456, 2.345, 1.523, M_PI/3};
-  Player player{3., 3, 1.523, M_PI/3};
+  Player player{3, 3, 1.523, M_PI/3};
   Map map;
   Texture tex_walls("./walltext.png");
   Texture tex_monst("./monsters.png");
@@ -120,7 +131,7 @@ int main() {
     std::cerr << "Failed to load textures" << std::endl;
     return -1;
   }
-  std::vector<Sprite> sprites{ {1.834, 8.75, 0}, {5.323, 5.365, 1}, {4.123, 10.265, 1} };
+  std::vector<Sprite> sprites{ {3.523, 3.812, 2, 0}, {1.834, 8.75, 0, 0}, {5.323, 5.365, 1, 0}, {4.123, 10.265, 1, 0} };
 
 /*  for (size_t frame=0; frame<360; frame++) {
     std::stringstream ss;
