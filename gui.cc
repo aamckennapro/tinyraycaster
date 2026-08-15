@@ -31,8 +31,8 @@ int main() {
     return -1;
   }
 
-  if (SDL_CreateWindowAndRenderer{fb.w, fb.h, SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS, &window, &renderer)) {
-    std::cerr << "Couldn't create window and renderer: " << SLD_GetError() << std::endl;
+  if (SDL_CreateWindowAndRenderer(fb.w, fb.h, SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS, &window, &renderer)) {
+    std::cerr << "Couldn't create window and renderer: " << SDL_GetError() << std::endl;
     return -1;
   }
 
@@ -43,13 +43,13 @@ int main() {
 
   while (1) {
     SDL_PollEvent(&event);
-    if (event.type == SDL.QUIT) {
+    if (event.type == SDL_QUIT) {
       break;
     }
 
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, framebuffer_texture, NULL, NULL);
-    SDL_renderPresent(renderer);
+    SDL_RenderPresent(renderer);
   }
 
   SDL_DestroyTexture(framebuffer_texture);

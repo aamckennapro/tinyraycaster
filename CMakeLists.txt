@@ -1,10 +1,10 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.5)
 project (tinyraycaster)
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 include(CheckCXXCompilerFlag)
-function(enable_css_compilfer_flag_if_supported flag)
+function(enable_cxx_compiler_flag_if_supported flag)
   string(FIND "${CMAKE_CXX_FLAGS}" "${flag}" flag_already_set)
   if(flag_already_set EQUAL -1)
     check_cxx_compiler_flag("${flag}" flag_supported)
